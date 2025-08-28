@@ -1,0 +1,69 @@
+name: DevSecOps Pipeline
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+
+jobs:
+  security-pipeline:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout This Repository
+        uses: actions/checkout@v3
+
+      - name: Clone DVWA Source Code
+        uses: actions/checkout@v3
+        with:
+          repository: 'digininja/DVWA'
+          path: 'dvwa-src'
+
+      - name: Build DVWA Docker Image
+        run: |
+          docker build -t dvwa-app:${{ github.sha }} ./dvwa-src
+
+      - name: SAST Scan (Semgrep)
+        uses: semgrep/semgrep-action@v1
+        with:
+          source_path: dvwa-src
+          config: 'p/php'
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.4' # DVWA is compatible with older PHP versions
+
+      - name: SCA Scan (Composer Audit)
+        run: |
+          cd dvwa-src
+          composer install --no-dev --no-interaction
+          composer audit
+
+      - name: Container Scan (Trivy)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'dvwa-app:${{ github.sha }}'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'HIGH,CRITICAL'
+
+      - name: DAST Scan (OWASP ZAP)
+        run: |
+          cd dvwa-src
+          docker-compose up -d
+          echo "Waiting for DVWA to start..."
+          sleep 45
+          docker run --rm --network="host" -v ${{ github.workspace }}/dvwa-src:/zap/wrk/:rw \
+          owasp/zap2docker-stable zap-baseline.py \
+          -t http://127.0.0.1:4280/ -g zap-report.conf -r zap-report.html
+          docker-compose down
+
+      - name: Upload DAST Report
+        uses: actions/upload-artifact@v3
+        if: always() # Always run this step to upload the report
+        with:
+          name: zap-dast-report
+          path: dvwa-src/zap-report.html
