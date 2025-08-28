@@ -62,7 +62,7 @@ jobs:
           docker-compose down
 
       - name: Upload DAST Report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always() # Always run this step to upload the report
         with:
           name: zap-dast-report
