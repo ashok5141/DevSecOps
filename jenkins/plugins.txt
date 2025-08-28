@@ -1,0 +1,6 @@
+workflow-aggregator:2.6
+docker-workflow:1.26
+git:4.10.0
+blueocean:1.25.3
+timestamper:1.13
+ansicolor:0.7.1
