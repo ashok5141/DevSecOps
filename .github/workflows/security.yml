@@ -11,10 +11,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout This Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Clone DVWA Source Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: 'digininja/DVWA'
           path: 'dvwa-src'
@@ -41,7 +41,7 @@ jobs:
           composer audit
 
       - name: Container Scan (Trivy)
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.19.0
         with:
           image-ref: 'dvwa-app:${{ github.sha }}'
           format: 'table'
