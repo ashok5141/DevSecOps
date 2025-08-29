@@ -11,10 +11,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout This Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.3.0
 
       - name: Clone DVWA Source Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.3.0
         with:
           repository: 'digininja/DVWA'
           path: 'dvwa-src'
@@ -30,9 +30,9 @@ jobs:
           config: 'p/php'
 
       - name: Set up PHP
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@2.35.4
         with:
-          php-version: '7.4' # DVWA is compatible with older PHP versions
+          php-version: '7.4'
 
       - name: SCA Scan (Composer Audit)
         run: |
@@ -62,8 +62,8 @@ jobs:
           docker-compose down
 
       - name: Upload DAST Report
-        uses: actions/upload-artifact@v4
-        if: always() # Always run this step to upload the report
+        uses: actions/upload-artifact@v4.6.2
+        if: always()
         with:
           name: zap-dast-report
           path: dvwa-src/zap-report.html
